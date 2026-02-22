@@ -23,7 +23,8 @@ struct ContentView: View {
                 PrayerMenuView(
                     prayers: prayers,
                     cityName: cityName,
-                    notificationPreferences: notificationPreferences
+                    notificationPreferences: notificationPreferences,
+                    settings: settings
                 )
 
                 // Footer: Settings + Quit
