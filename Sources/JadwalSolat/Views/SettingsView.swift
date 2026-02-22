@@ -97,6 +97,18 @@ struct SettingsView: View {
 
                     // MARK: - General
                     settingsSection("UMUM") {
+                        HStack {
+                            Text("Koreksi Hijriyah")
+                                .font(.system(size: 13))
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Stepper(value: $settings.hijriyahOffset, in: -5...5) {
+                                Text("\(settings.hijriyahOffset > 0 ? "+" : "")\(settings.hijriyahOffset) hari")
+                                    .font(.system(size: 13, design: .monospaced))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+
                         Toggle(isOn: $settings.launchAtLogin) {
                             Text("Launch at Login")
                                 .font(.system(size: 13))
