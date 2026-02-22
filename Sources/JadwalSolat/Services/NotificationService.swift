@@ -19,7 +19,7 @@ class NotificationService {
         center.removeAllPendingNotificationRequests()
 
         for prayer in prayers {
-            guard prayer.name != .imsak else { continue }
+            guard NotificationPreferences.shared.isEnabled(prayer.name) else { continue }
 
             let content = UNMutableNotificationContent()
             content.title = "Waktu \(prayer.name.displayName)"

@@ -21,7 +21,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Setup popover
         popover = NSPopover()
-        popover.contentSize = NSSize(width: 280, height: 350)
+        popover.contentSize = NSSize(width: 300, height: 480)
         popover.behavior = .transient
 
         // Listen for location updates
@@ -83,7 +83,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let view = PrayerMenuView(
             prayers: todayPrayers,
             cityName: locationService.cityName,
-            onQuit: { NSApp.terminate(nil) }
+            onQuit: { NSApp.terminate(nil) },
+            notificationPreferences: NotificationPreferences.shared
         )
         popover.contentViewController = NSHostingController(rootView: view)
     }
