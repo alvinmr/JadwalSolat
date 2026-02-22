@@ -4,10 +4,14 @@ struct PrayerCalculator {
     let latitude: Double
     let longitude: Double
     let timezone: Double
+    let method: CalculationMethod
 
-    // Kemenag RI angles
-    private let subuhAngle = 20.0
-    private let isyaAngle = 18.0
+    init(latitude: Double, longitude: Double, timezone: Double, method: CalculationMethod = .kemenagRI) {
+        self.latitude = latitude
+        self.longitude = longitude
+        self.timezone = timezone
+        self.method = method
+    }
 
     func calculate(for date: Date) -> [PrayerTime] {
         let cal = Calendar.current
@@ -20,11 +24,20 @@ struct PrayerCalculator {
 
         let transitTime = solarNoon(eqOfTime: eqOfTime)
 
-        let subuhTime = transitTime - hourAngle(angle: subuhAngle, decl: sunDecl) / 15.0
+        let subuhTime = transitTime - hourAngle(angle: method.subuhAngle, decl: sunDecl) / 15.0
         let dzuhurTime = transitTime
         let asharTime = transitTime + asharHourAngle(decl: sunDecl) / 15.0
         let maghribTime = transitTime + hourAngle(angle: 0.8333, decl: sunDecl) / 15.0
-        let isyaTime = transitTime + hourAngle(angle: isyaAngle, decl: sunDecl) / 15.0
+
+        let isyaTime: Double
+        if let isyaAngle = method.isyaAngle {
+            isyaTime = transitTime + hourAngle(angle: isyaAngle, decl: sunDecl) / 15.0
+        } else if let minutes = method.isyaMinutesAfterMaghrib {
+            isyaTime = maghribTime + minutes / 60.0
+        } else {
+            isyaTime = transitTime + hourAngle(angle: 18.0, decl: sunDecl) / 15.0
+        }
+
         let imsakTime = subuhTime - 10.0 / 60.0
 
         return [

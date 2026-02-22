@@ -3,7 +3,6 @@ import SwiftUI
 struct PrayerMenuView: View {
     let prayers: [PrayerTime]
     let cityName: String
-    let onQuit: () -> Void
     @ObservedObject var notificationPreferences: NotificationPreferences
 
     @State private var now = Date()
@@ -27,13 +26,8 @@ struct PrayerMenuView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
 
-            Spacer(minLength: 4)
-
-            // MARK: - Footer
-            footerSection
         }
         .frame(width: 300)
-        .background(Color.black.opacity(0.85))
         .onReceive(timer) { _ in
             now = Date()
         }
@@ -174,28 +168,6 @@ struct PrayerMenuView: View {
                 )
             }
         }
-    }
-
-    // MARK: - Footer
-
-    private var footerSection: some View {
-        HStack {
-            Spacer()
-            Button(action: onQuit) {
-                HStack(spacing: 4) {
-                    Image(systemName: "power")
-                        .font(.caption2)
-                    Text("Quit")
-                        .font(.caption)
-                }
-                .foregroundColor(.white.opacity(0.4))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 14)
-        .padding(.bottom, 10)
     }
 
     // MARK: - Logic

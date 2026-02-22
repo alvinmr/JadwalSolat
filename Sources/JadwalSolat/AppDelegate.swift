@@ -11,6 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var calculator: PrayerCalculator?
     var todayPrayers: [PrayerTime] = []
     var cancellables = Set<AnyCancellable>()
+    let settings = AppSettings.shared
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Hide dock icon
@@ -21,28 +22,38 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Setup popover
         popover = NSPopover()
-        popover.contentSize = NSSize(width: 300, height: 480)
+        popover.contentSize = NSSize(width: 300, height: 500)
         popover.behavior = .transient
 
-        // Listen for location updates
+        // Listen for location updates (only used in automatic mode)
         locationService.$latitude.combineLatest(locationService.$longitude)
-            .sink { [weak self] lat, lon in
-                guard let self else { return }
-                self.calculator = PrayerCalculator(latitude: lat, longitude: lon, timezone: self.locationService.timezone)
-                self.refreshPrayerTimes()
+            .sink { [weak self] _, _ in
+                self?.rebuildCalculator()
             }
+            .store(in: &cancellables)
+
+        // Listen for settings changes
+        settings.$calculationMethod
+            .sink { [weak self] _ in self?.rebuildCalculator() }
+            .store(in: &cancellables)
+        settings.$locationMode
+            .sink { [weak self] _ in self?.rebuildCalculator() }
+            .store(in: &cancellables)
+        settings.$manualLatitude
+            .sink { [weak self] _ in self?.rebuildCalculator() }
+            .store(in: &cancellables)
+        settings.$manualLongitude
+            .sink { [weak self] _ in self?.rebuildCalculator() }
+            .store(in: &cancellables)
+        settings.$menuBarFormat
+            .sink { [weak self] _ in self?.updateMenuBarTitle() }
             .store(in: &cancellables)
 
         // Request location
         locationService.requestLocation()
 
-        // Initial calculation with defaults
-        calculator = PrayerCalculator(
-            latitude: locationService.latitude,
-            longitude: locationService.longitude,
-            timezone: locationService.timezone
-        )
-        refreshPrayerTimes()
+        // Initial calculation
+        rebuildCalculator()
 
         // Setup click handler
         if let button = statusItem.button {
@@ -61,6 +72,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationService.shared.requestPermission()
     }
 
+    func rebuildCalculator() {
+        let lat: Double
+        let lon: Double
+        let tz: Double
+
+        if settings.locationMode == .manual {
+            lat = settings.manualLatitude
+            lon = settings.manualLongitude
+            // Estimate timezone from longitude for manual mode
+            tz = round(lon / 15.0)
+        } else {
+            lat = locationService.latitude
+            lon = locationService.longitude
+            tz = locationService.timezone
+        }
+
+        calculator = PrayerCalculator(
+            latitude: lat,
+            longitude: lon,
+            timezone: tz,
+            method: settings.calculationMethod
+        )
+        refreshPrayerTimes()
+    }
+
     func refreshPrayerTimes() {
         guard let calculator = calculator else { return }
         todayPrayers = calculator.calculate(for: Date())
@@ -76,15 +112,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         let countdown = next.countdownString(from: now)
-        statusItem.button?.title = "\u{1F54C} \(next.name.displayName) \(next.timeString) (\(countdown))"
+        let name = next.name.displayName
+        let time = next.timeString
+
+        switch settings.menuBarFormat {
+        case .full:
+            statusItem.button?.title = "\u{1F54C} \(name) \(time) (\(countdown))"
+        case .nameCountdown:
+            statusItem.button?.title = "\u{1F54C} \(name) (\(countdown))"
+        case .countdownOnly:
+            statusItem.button?.title = "\u{1F54C} \(countdown)"
+        case .timeOnly:
+            statusItem.button?.title = "\u{1F54C} \(name) \(time)"
+        }
     }
 
     func updatePopoverContent() {
-        let view = PrayerMenuView(
+        let cityName = settings.locationMode == .manual
+            ? "Manual (\(String(format: "%.2f", settings.manualLatitude)), \(String(format: "%.2f", settings.manualLongitude)))"
+            : locationService.cityName
+
+        let view = ContentView(
             prayers: todayPrayers,
-            cityName: locationService.cityName,
+            cityName: cityName,
             onQuit: { NSApp.terminate(nil) },
-            notificationPreferences: NotificationPreferences.shared
+            notificationPreferences: NotificationPreferences.shared,
+            settings: self.settings,
+            onSettingsChanged: { [weak self] in
+                self?.rebuildCalculator()
+            }
         )
         popover.contentViewController = NSHostingController(rootView: view)
     }
