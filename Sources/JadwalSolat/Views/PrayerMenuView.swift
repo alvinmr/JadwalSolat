@@ -30,7 +30,7 @@ struct PrayerMenuView: View {
             // Prayer times list
             VStack(spacing: 0) {
                 ForEach(prayers, id: \.name) { prayer in
-                    let isNext = isNextPrayer(prayer)
+                    let isNext = isCurrentPrayer(prayer)
                     HStack {
                         Text(prayer.name.displayName)
                             .fontWeight(isNext ? .semibold : .regular)
@@ -72,8 +72,8 @@ struct PrayerMenuView: View {
         .frame(width: 260)
     }
 
-    private func isNextPrayer(_ prayer: PrayerTime) -> Bool {
-        let next = PrayerTime.nextPrayer(from: prayers, after: Date())
-        return next?.name == prayer.name
+    private func isCurrentPrayer(_ prayer: PrayerTime) -> Bool {
+        let current = PrayerTime.currentPrayer(from: prayers, at: Date())
+        return current?.name == prayer.name
     }
 }

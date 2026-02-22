@@ -7,8 +7,8 @@ class LocationService: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     @Published var latitude: Double = -6.2088   // Default: Jakarta
     @Published var longitude: Double = 106.8456
-    @Published var timezone: Double = 7.0
-    @Published var cityName: String = "Jakarta"
+    @Published var timezone: Double = Double(TimeZone.current.secondsFromGMT()) / 3600.0
+    @Published var cityName: String = ""
     @Published var authorized: Bool = false
 
     override init() {
@@ -26,12 +26,31 @@ class LocationService: NSObject, ObservableObject, CLLocationManagerDelegate {
         guard let location = locations.last else { return }
         manager.stopUpdatingLocation()
 
-        Task { @MainActor in
-            self.latitude = location.coordinate.latitude
-            self.longitude = location.coordinate.longitude
-            self.timezone = Double(TimeZone.current.secondsFromGMT()) / 3600.0
-            self.authorized = true
-            self.reverseGeocode(location)
+        let coord = location.coordinate
+        CLGeocoder().reverseGeocodeLocation(location) { placemarks, _ in
+            let placemark = placemarks?.first
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.authorized = true
+
+                // Get timezone from placemark (location-accurate) or fallback to system
+                if let placemarkTZ = placemark?.timeZone {
+                    self.timezone = Double(placemarkTZ.secondsFromGMT()) / 3600.0
+                } else {
+                    self.timezone = Double(TimeZone.current.secondsFromGMT()) / 3600.0
+                }
+
+                // Set city name
+                if let p = placemark {
+                    self.cityName = [p.locality, p.administrativeArea]
+                        .compactMap { $0 }
+                        .joined(separator: ", ")
+                }
+
+                // Set coordinates LAST so Combine subscribers see correct timezone
+                self.latitude = coord.latitude
+                self.longitude = coord.longitude
+            }
         }
     }
 
@@ -44,18 +63,6 @@ class LocationService: NSObject, ObservableObject, CLLocationManagerDelegate {
         Task { @MainActor in
             if status == .authorized || status == .authorizedAlways {
                 manager.startUpdatingLocation()
-            }
-        }
-    }
-
-    private func reverseGeocode(_ location: CLLocation) {
-        CLGeocoder().reverseGeocodeLocation(location) { placemarks, _ in
-            Task { @MainActor in
-                if let p = placemarks?.first {
-                    self.cityName = [p.locality, p.administrativeArea]
-                        .compactMap { $0 }
-                        .joined(separator: ", ")
-                }
             }
         }
     }

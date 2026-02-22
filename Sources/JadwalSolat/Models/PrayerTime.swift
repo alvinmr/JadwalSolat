@@ -29,6 +29,11 @@ struct PrayerTime {
         return prayers.first { $0.time > date }
     }
 
+    /// Returns the current active prayer (the most recent prayer that has already started)
+    static func currentPrayer(from prayers: [PrayerTime], at date: Date) -> PrayerTime? {
+        return prayers.last { $0.time <= date }
+    }
+
     func countdownString(from now: Date) -> String {
         let interval = time.timeIntervalSince(now)
         guard interval > 0 else { return "" }
