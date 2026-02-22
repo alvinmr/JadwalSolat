@@ -4,6 +4,7 @@ struct PrayerMenuView: View {
     let prayers: [PrayerTime]
     let cityName: String
     @ObservedObject var notificationPreferences: NotificationPreferences
+    @ObservedObject var settings: AppSettings
 
     @State private var now = Date()
 
@@ -67,7 +68,8 @@ struct PrayerMenuView: View {
 
     private var hijriyahDateString: String {
         let hijri = Calendar(identifier: .islamicUmmAlQura)
-        let components = hijri.dateComponents([.day, .month, .year], from: now)
+        let adjustedDate = Calendar.current.date(byAdding: .day, value: settings.hijriyahOffset, to: now) ?? now
+        let components = hijri.dateComponents([.day, .month, .year], from: adjustedDate)
         let months = ["Muharram", "Safar", "Rabiul Awal", "Rabiul Akhir",
                       "Jumadil Awal", "Jumadil Akhir", "Rajab", "Syaban",
                       "Ramadhan", "Syawal", "Dzulqaidah", "Dzulhijjah"]
