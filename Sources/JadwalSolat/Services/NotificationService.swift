@@ -4,11 +4,17 @@ import UserNotifications
 class NotificationService {
     static let shared = NotificationService()
 
+    private var isAvailable: Bool {
+        Bundle.main.bundleIdentifier != nil
+    }
+
     func requestPermission() {
+        guard isAvailable else { return }
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
     func scheduleNotifications(for prayers: [PrayerTime]) {
+        guard isAvailable else { return }
         let center = UNUserNotificationCenter.current()
         center.removeAllPendingNotificationRequests()
 
