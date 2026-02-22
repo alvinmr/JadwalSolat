@@ -4,7 +4,7 @@ struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     let onBack: () -> Void
 
-    private let accentColor = Color(red: 13/255, green: 148/255, blue: 136/255)
+    private let accentColor = Color(red: 16/255, green: 130/255, blue: 85/255)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

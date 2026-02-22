@@ -10,7 +10,7 @@ struct ContentView: View {
 
     @State private var showSettings = false
 
-    private let accentColor = Color(red: 13/255, green: 148/255, blue: 136/255)
+    private let accentColor = Color(red: 16/255, green: 130/255, blue: 85/255)
 
     var body: some View {
         if showSettings {
@@ -28,13 +28,16 @@ struct ContentView: View {
                 )
 
                 // Footer: Settings + Quit
+                Divider()
+                    .padding(.horizontal, 14)
+
                 HStack {
                     Button(action: { showSettings = true }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "gearshape")
-                                .font(.caption2)
+                        HStack(spacing: 5) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 10))
                             Text("Settings")
-                                .font(.caption)
+                                .font(.system(size: 11, weight: .medium))
                         }
                         .foregroundColor(.secondary)
                     }
@@ -43,18 +46,18 @@ struct ContentView: View {
                     Spacer()
 
                     Button(action: onQuit) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 5) {
                             Image(systemName: "power")
-                                .font(.caption2)
+                                .font(.system(size: 10))
                             Text("Quit")
-                                .font(.caption)
+                                .font(.system(size: 11, weight: .medium))
                         }
                         .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 16)
-                .padding(.vertical, 10)
+                .padding(.vertical, 8)
             }
         }
     }

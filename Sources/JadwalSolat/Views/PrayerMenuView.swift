@@ -8,7 +8,9 @@ struct PrayerMenuView: View {
 
     @State private var now = Date()
 
-    private let accentColor = Color(red: 13/255, green: 148/255, blue: 136/255) // #0D9488 teal
+    // Emerald green accent
+    private let accentColor = Color(red: 16/255, green: 130/255, blue: 85/255)
+    private let accentLight = Color(red: 34/255, green: 170/255, blue: 115/255)
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -19,14 +21,13 @@ struct PrayerMenuView: View {
             // MARK: - Countdown Card
             countdownCard
                 .padding(.horizontal, 14)
-                .padding(.top, 10)
-                .padding(.bottom, 6)
+                .padding(.top, 6)
+                .padding(.bottom, 10)
 
             // MARK: - Prayer Times List
             prayerTimesList
                 .padding(.horizontal, 14)
-                .padding(.vertical, 6)
-
+                .padding(.bottom, 8)
         }
         .frame(width: 300)
         .onReceive(timer) { _ in
@@ -37,31 +38,28 @@ struct PrayerMenuView: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 5) {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 4) {
                 Image(systemName: "location.fill")
-                    .font(.caption2)
+                    .font(.system(size: 9))
                     .foregroundColor(accentColor)
                 Text(cityName)
-                    .font(.caption)
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundColor(.secondary)
                 Spacer()
-                Image(systemName: "moon.stars")
-                    .font(.caption2)
-                    .foregroundColor(accentColor)
             }
 
             Text("Jadwal Solat")
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundColor(.primary)
 
             Text(hijriyahDateString)
-                .font(.caption)
+                .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.secondary)
         }
         .padding(.horizontal, 16)
         .padding(.top, 14)
-        .padding(.bottom, 8)
+        .padding(.bottom, 4)
     }
 
     // MARK: - Hijriyah Date
@@ -82,44 +80,46 @@ struct PrayerMenuView: View {
     private var countdownCard: some View {
         Group {
             if let target = countdownTarget {
-                VStack(spacing: 8) {
+                VStack(spacing: 10) {
                     HStack {
                         Text(target.label)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.white.opacity(0.85))
                         Spacer()
                         Text(target.prayer.timeString)
-                            .font(.caption)
-                            .monospacedDigit()
-                            .foregroundColor(.primary.opacity(0.5))
+                            .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.7))
                     }
 
                     Text(countdownText(to: target.prayer))
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity, alignment: .center)
 
                     // Progress bar
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(Color.primary.opacity(0.1))
-                                .frame(height: 6)
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(accentColor)
-                                .frame(width: geo.size.width * progress, height: 6)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.white.opacity(0.25))
+                                .frame(height: 5)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.white.opacity(0.9))
+                                .frame(width: geo.size.width * progress, height: 5)
                         }
                     }
-                    .frame(height: 6)
+                    .frame(height: 5)
                 }
-                .padding(14)
+                .padding(16)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(accentColor.opacity(0.15))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(accentColor.opacity(0.3), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [accentColor, accentLight]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
+                        .shadow(color: accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
                 )
             }
         }
@@ -128,26 +128,26 @@ struct PrayerMenuView: View {
     // MARK: - Prayer Times List
 
     private var prayerTimesList: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 1) {
             ForEach(prayers, id: \.name) { prayer in
                 let isCurrent = isCurrentPrayer(prayer)
                 HStack(spacing: 0) {
                     // Left accent indicator
                     RoundedRectangle(cornerRadius: 2)
                         .fill(isCurrent ? accentColor : Color.clear)
-                        .frame(width: 3, height: 20)
-                        .padding(.trailing, 8)
+                        .frame(width: 3, height: 22)
+                        .padding(.trailing, 10)
 
                     Text(prayer.name.displayName)
-                        .font(.system(size: 13, weight: isCurrent ? .semibold : .regular))
+                        .font(.system(size: 13, weight: isCurrent ? .bold : .regular, design: .rounded))
                         .foregroundColor(isCurrent ? .primary : .secondary)
 
                     Spacer()
 
                     Text(prayer.timeString)
-                        .font(.system(size: 13, weight: isCurrent ? .semibold : .regular, design: .monospaced))
+                        .font(.system(size: 13, weight: isCurrent ? .bold : .medium, design: .monospaced))
                         .foregroundColor(isCurrent ? .primary : .secondary)
-                        .padding(.trailing, 8)
+                        .padding(.trailing, 10)
 
                     // Bell toggle button
                     Button(action: {
@@ -157,19 +157,24 @@ struct PrayerMenuView: View {
                               ? "bell.fill" : "bell.slash")
                             .font(.system(size: 11))
                             .foregroundColor(notificationPreferences.isEnabled(prayer.name)
-                                             ? accentColor : .primary.opacity(0.3))
+                                             ? accentColor : .primary.opacity(0.25))
                     }
                     .buttonStyle(.plain)
                     .frame(width: 24, height: 24)
                 }
                 .padding(.horizontal, 10)
-                .padding(.vertical, 7)
+                .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(isCurrent ? accentColor.opacity(0.15) : Color.clear)
+                        .fill(isCurrent ? accentColor.opacity(0.08) : Color.clear)
                 )
             }
         }
+        .padding(6)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.primary.opacity(0.04))
+        )
     }
 
     // MARK: - Logic
