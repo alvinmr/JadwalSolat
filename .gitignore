@@ -58,3 +58,6 @@ playground.xcworkspace
 .swiftpm/
 Packages/
 Package.resolved
+
+# Project docs (internal)
+docs/
