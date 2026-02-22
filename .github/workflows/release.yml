@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: '5.9'
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          echo "version=$TAG" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Update VERSION file
+        run: echo "${{ steps.version.outputs.version }}" > VERSION
+
+      - name: Build release
+        run: |
+          chmod +x scripts/build-app.sh
+          ./scripts/build-app.sh
+
+      - name: Create ZIP archive
+        run: |
+          cd .build/release
+          zip -r JadwalSolat-${{ steps.version.outputs.tag }}.zip JadwalSolat.app
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: 'Jadwal Solat ${{ steps.version.outputs.tag }}'
+          body: |
+            ## Jadwal Solat ${{ steps.version.outputs.tag }}
+
+            ### Installation
+            1. Download `JadwalSolat-${{ steps.version.outputs.tag }}.zip`
+            2. Unzip and drag `JadwalSolat.app` to your **Applications** folder
+            3. Open the app — it will appear in your menu bar ☪️
+
+            ### Requirements
+            - macOS 13.0 (Ventura) or later
+          files: |
+            .build/release/JadwalSolat-${{ steps.version.outputs.tag }}.zip
+          generate_release_notes: true
