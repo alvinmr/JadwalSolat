@@ -107,12 +107,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func updateMenuBarTitle() {
         let now = Date()
-        
+
         if statusItem.button?.image == nil {
-            let config = NSImage.SymbolConfiguration(scale: .large)
-            let image = NSImage(systemSymbolName: "moon.stars.fill", accessibilityDescription: "Jadwal Solat")
-            statusItem.button?.image = image?.withSymbolConfiguration(config)
-            statusItem.button?.imagePosition = .imageLeft
+            if let image = NSImage(systemSymbolName: "moon.stars", accessibilityDescription: "Jadwal Solat") {
+                let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
+                let sized = image.withSymbolConfiguration(config) ?? image
+                sized.isTemplate = true
+                statusItem.button?.image = sized
+                statusItem.button?.imagePosition = .imageLeading
+            }
         }
 
         guard let next = PrayerTime.nextPrayer(from: todayPrayers, after: now) else {

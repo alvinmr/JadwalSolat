@@ -38,26 +38,45 @@ struct PrayerMenuView: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 4) {
-                Image(systemName: "location.fill")
-                    .font(.system(size: 9))
-                    .foregroundColor(accentColor)
-                Text(cityName)
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 4) {
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.8))
+                    Text(cityName)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white.opacity(0.9))
+                }
+
+                Text("Jadwal Solat")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+
+                Text(hijriyahDateString)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(.secondary)
-                Spacer()
+                    .foregroundColor(.white.opacity(0.75))
             }
 
-            Text("Jadwal Solat")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundColor(.primary)
+            Spacer()
 
-            Text(hijriyahDateString)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.secondary)
+            Image(systemName: "moon.stars.fill")
+                .font(.system(size: 32, weight: .light))
+                .foregroundColor(.white.opacity(0.25))
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [accentColor, accentLight]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .padding(.horizontal, 14)
         .padding(.top, 14)
         .padding(.bottom, 4)
     }
@@ -80,46 +99,43 @@ struct PrayerMenuView: View {
     private var countdownCard: some View {
         Group {
             if let target = countdownTarget {
-                VStack(spacing: 10) {
+                VStack(spacing: 8) {
                     HStack {
                         Text(target.label)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.white.opacity(0.85))
+                            .foregroundColor(.secondary)
                         Spacer()
                         Text(target.prayer.timeString)
                             .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(accentColor)
                     }
 
                     Text(countdownText(to: target.prayer))
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(.primary)
                         .frame(maxWidth: .infinity, alignment: .center)
 
                     // Progress bar
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.white.opacity(0.25))
+                                .fill(accentColor.opacity(0.15))
                                 .frame(height: 5)
                             RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.white.opacity(0.9))
+                                .fill(accentColor)
                                 .frame(width: geo.size.width * progress, height: 5)
                         }
                     }
                     .frame(height: 5)
                 }
-                .padding(16)
+                .padding(14)
                 .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: [accentColor, accentLight]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(accentColor.opacity(0.06))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(accentColor.opacity(0.2), lineWidth: 1)
                         )
-                        .shadow(color: accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
                 )
             }
         }
