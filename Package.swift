@@ -7,7 +7,8 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "JadwalSolat",
-            path: "Sources/JadwalSolat"
+            path: "Sources/JadwalSolat",
+            exclude: ["Info.plist", "JadwalSolat.entitlements"]
         ),
         .testTarget(
             name: "JadwalSolatTests",
