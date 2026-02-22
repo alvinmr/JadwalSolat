@@ -25,7 +25,7 @@ struct SettingsView: View {
 
                 Text("Settings")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
 
                 Spacer()
                 // Invisible spacer to center title
@@ -52,7 +52,7 @@ struct SettingsView: View {
 
                         Text(methodDescription)
                             .font(.system(size: 10))
-                            .foregroundColor(.white.opacity(0.4))
+                            .foregroundColor(.secondary)
                     }
 
                     // MARK: - Location
@@ -63,10 +63,10 @@ struct SettingsView: View {
                                     HStack(spacing: 8) {
                                         Image(systemName: settings.locationMode == mode ? "largecircle.fill.circle" : "circle")
                                             .font(.system(size: 14))
-                                            .foregroundColor(settings.locationMode == mode ? accentColor : .white.opacity(0.4))
+                                            .foregroundColor(settings.locationMode == mode ? accentColor : .secondary)
                                         Text(mode.rawValue)
                                             .font(.system(size: 13))
-                                            .foregroundColor(.white.opacity(0.8))
+                                            .foregroundColor(.primary)
                                     }
                                 }
                                 .buttonStyle(.plain)
@@ -100,7 +100,7 @@ struct SettingsView: View {
                         Toggle(isOn: $settings.launchAtLogin) {
                             Text("Launch at Login")
                                 .font(.system(size: 13))
-                                .foregroundColor(.white.opacity(0.8))
+                                .foregroundColor(.primary)
                         }
                         .toggleStyle(.checkbox)
                         .tint(accentColor)
@@ -111,7 +111,6 @@ struct SettingsView: View {
             }
         }
         .frame(width: 300, height: 480)
-        .background(Color.black.opacity(0.85))
     }
 
     // MARK: - Helpers
@@ -120,7 +119,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(.white.opacity(0.4))
+                .foregroundColor(.secondary)
                 .tracking(0.5)
 
             VStack(alignment: .leading, spacing: 6) {
@@ -130,7 +129,7 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.white.opacity(0.06))
+                    .fill(Color.primary.opacity(0.06))
             )
         }
     }
@@ -139,17 +138,17 @@ struct SettingsView: View {
         HStack {
             Text(label)
                 .font(.system(size: 12))
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(.secondary)
                 .frame(width: 65, alignment: .leading)
             TextField("", value: value, format: .number.precision(.fractionLength(4)))
                 .textFieldStyle(.plain)
                 .font(.system(size: 12, design: .monospaced))
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.white.opacity(0.08))
+                        .fill(Color.primary.opacity(0.08))
                 )
         }
     }

@@ -71,6 +71,9 @@ class AppSettings: ObservableObject {
     @Published var menuBarFormat: MenuBarFormat {
         didSet { save() }
     }
+    @Published var hijriyahOffset: Int {
+        didSet { save() }
+    }
     @Published var launchAtLogin: Bool {
         didSet {
             save()
@@ -85,6 +88,7 @@ class AppSettings: ObservableObject {
         self.manualLatitude = defaults.object(forKey: "manualLatitude") as? Double ?? -8.65
         self.manualLongitude = defaults.object(forKey: "manualLongitude") as? Double ?? 115.22
         self.menuBarFormat = MenuBarFormat(rawValue: defaults.string(forKey: "menuBarFormat") ?? "") ?? .full
+        self.hijriyahOffset = defaults.integer(forKey: "hijriyahOffset")
         self.launchAtLogin = defaults.bool(forKey: "launchAtLogin")
     }
 
@@ -95,6 +99,7 @@ class AppSettings: ObservableObject {
         defaults.set(manualLatitude, forKey: "manualLatitude")
         defaults.set(manualLongitude, forKey: "manualLongitude")
         defaults.set(menuBarFormat.rawValue, forKey: "menuBarFormat")
+        defaults.set(hijriyahOffset, forKey: "hijriyahOffset")
         defaults.set(launchAtLogin, forKey: "launchAtLogin")
     }
 

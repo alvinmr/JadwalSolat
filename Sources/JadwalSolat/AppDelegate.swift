@@ -107,8 +107,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func updateMenuBarTitle() {
         let now = Date()
+        
+        if statusItem.button?.image == nil {
+            let config = NSImage.SymbolConfiguration(scale: .large)
+            let image = NSImage(systemSymbolName: "moon.stars.fill", accessibilityDescription: "Jadwal Solat")
+            statusItem.button?.image = image?.withSymbolConfiguration(config)
+            statusItem.button?.imagePosition = .imageLeft
+        }
+
         guard let next = PrayerTime.nextPrayer(from: todayPrayers, after: now) else {
-            statusItem.button?.title = "\u{1F54C} —"
+            statusItem.button?.title = "—"
             return
         }
         let countdown = next.countdownString(from: now)
@@ -117,13 +125,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         switch settings.menuBarFormat {
         case .full:
-            statusItem.button?.title = "\u{1F54C} \(name) \(time) (\(countdown))"
+            statusItem.button?.title = "\(name) \(time) (\(countdown))"
         case .nameCountdown:
-            statusItem.button?.title = "\u{1F54C} \(name) (\(countdown))"
+            statusItem.button?.title = "\(name) (\(countdown))"
         case .countdownOnly:
-            statusItem.button?.title = "\u{1F54C} \(countdown)"
+            statusItem.button?.title = "\(countdown)"
         case .timeOnly:
-            statusItem.button?.title = "\u{1F54C} \(name) \(time)"
+            statusItem.button?.title = "\(name) \(time)"
         }
     }
 

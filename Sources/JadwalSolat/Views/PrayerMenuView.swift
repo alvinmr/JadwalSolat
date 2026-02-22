@@ -43,7 +43,7 @@ struct PrayerMenuView: View {
                     .foregroundColor(accentColor)
                 Text(cityName)
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(.secondary)
                 Spacer()
                 Image(systemName: "moon.stars")
                     .font(.caption2)
@@ -52,11 +52,11 @@ struct PrayerMenuView: View {
 
             Text("Jadwal Solat")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
 
             Text(hijriyahDateString)
                 .font(.caption)
-                .foregroundColor(.white.opacity(0.6))
+                .foregroundColor(.secondary)
         }
         .padding(.horizontal, 16)
         .padding(.top, 14)
@@ -84,24 +84,24 @@ struct PrayerMenuView: View {
                     HStack {
                         Text(target.label)
                             .font(.caption)
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(.secondary)
                         Spacer()
                         Text(target.prayer.timeString)
                             .font(.caption)
                             .monospacedDigit()
-                            .foregroundColor(.white.opacity(0.5))
+                            .foregroundColor(.primary.opacity(0.5))
                     }
 
                     Text(countdownText(to: target.prayer))
                         .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                         .frame(maxWidth: .infinity, alignment: .center)
 
                     // Progress bar
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 3)
-                                .fill(Color.white.opacity(0.1))
+                                .fill(Color.primary.opacity(0.1))
                                 .frame(height: 6)
                             RoundedRectangle(cornerRadius: 3)
                                 .fill(accentColor)
@@ -138,13 +138,13 @@ struct PrayerMenuView: View {
 
                     Text(prayer.name.displayName)
                         .font(.system(size: 13, weight: isCurrent ? .semibold : .regular))
-                        .foregroundColor(isCurrent ? .white : .white.opacity(0.8))
+                        .foregroundColor(isCurrent ? .primary : .secondary)
 
                     Spacer()
 
                     Text(prayer.timeString)
                         .font(.system(size: 13, weight: isCurrent ? .semibold : .regular, design: .monospaced))
-                        .foregroundColor(isCurrent ? .white : .white.opacity(0.7))
+                        .foregroundColor(isCurrent ? .primary : .secondary)
                         .padding(.trailing, 8)
 
                     // Bell toggle button
@@ -155,7 +155,7 @@ struct PrayerMenuView: View {
                               ? "bell.fill" : "bell.slash")
                             .font(.system(size: 11))
                             .foregroundColor(notificationPreferences.isEnabled(prayer.name)
-                                             ? accentColor : .white.opacity(0.3))
+                                             ? accentColor : .primary.opacity(0.3))
                     }
                     .buttonStyle(.plain)
                     .frame(width: 24, height: 24)
@@ -178,23 +178,13 @@ struct PrayerMenuView: View {
     }
 
     private var countdownTarget: (label: String, prayer: PrayerTime)? {
-        let maghrib = prayers.first { $0.name == .maghrib }
-        let isya = prayers.first { $0.name == .isya }
-        let imsak = prayers.first { $0.name == .imsak }
-
-        if let maghrib, now < maghrib.time {
-            return ("Berbuka dalam", maghrib)
-        } else if let isya, now < isya.time {
-            return ("Isya dalam", isya)
-        } else if let imsak {
-            return ("Imsak dalam", imsak)
-        }
-        return nil
+        guard let next = PrayerTime.nextPrayer(from: prayers, after: now) else { return nil }
+        return ("Menuju \(next.name.displayName)", next)
     }
 
     private func countdownText(to prayer: PrayerTime) -> String {
         let interval = prayer.time.timeIntervalSince(now)
-        guard interval > 0 else { return "Sudah masuk" }
+        guard interval > 0 else { return "Menunggu hari esok" }
         let hours = Int(interval) / 3600
         let minutes = (Int(interval) % 3600) / 60
         if hours > 0 {

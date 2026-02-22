@@ -35,7 +35,7 @@ struct ContentView: View {
                             Text("Settings")
                                 .font(.caption)
                         }
-                        .foregroundColor(.white.opacity(0.4))
+                        .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
 
@@ -48,14 +48,13 @@ struct ContentView: View {
                             Text("Quit")
                                 .font(.caption)
                         }
-                        .foregroundColor(.white.opacity(0.4))
+                        .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
             }
-            .background(Color.black.opacity(0.85))
         }
     }
 }
