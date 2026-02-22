@@ -1,13 +1,17 @@
 import AppKit
 
 @MainActor
-func runApp() {
-    let app = NSApplication.shared
-    let delegate = AppDelegate()
-    app.delegate = delegate
-    app.run()
+final class AppRunner {
+    static func start() {
+        let app = NSApplication.shared
+        let delegate = AppDelegate()
+        app.delegate = delegate
+        app.run()
+    }
 }
 
-MainActor.assumeIsolated {
-    runApp()
+DispatchQueue.main.async {
+    AppRunner.start()
 }
+
+dispatchMain()
