@@ -8,7 +8,19 @@ CONTENTS="$APP_BUNDLE/Contents"
 MACOS="$CONTENTS/MacOS"
 RESOURCES="$CONTENTS/Resources"
 
-echo "Building release..."
+# ── Version Management ──
+VERSION_FILE="VERSION"
+BUILD_NUMBER_FILE="BUILD_NUMBER"
+
+# Read version
+VERSION=$(cat "$VERSION_FILE" 2>/dev/null | tr -d '[:space:]' || echo "1.0.0")
+
+# Read and increment build number
+BUILD_NUMBER=$(cat "$BUILD_NUMBER_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
+BUILD_NUMBER=$((BUILD_NUMBER + 1))
+echo "$BUILD_NUMBER" > "$BUILD_NUMBER_FILE"
+
+echo "Building v${VERSION} (build ${BUILD_NUMBER})..."
 swift build -c release
 
 echo "Creating app bundle..."
@@ -21,8 +33,8 @@ cp "$BUILD_DIR/$APP_NAME" "$MACOS/$APP_NAME"
 
 cp -R Resources/. "$RESOURCES/"
 
-# Create Info.plist with bundle identifier
-cat > "$CONTENTS/Info.plist" << 'PLIST'
+# Create Info.plist with version info
+cat > "$CONTENTS/Info.plist" << PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -36,9 +48,9 @@ cat > "$CONTENTS/Info.plist" << 'PLIST'
     <key>CFBundleExecutable</key>
     <string>JadwalSolat</string>
     <key>CFBundleVersion</key>
-    <string>1.0</string>
+    <string>${BUILD_NUMBER}</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>${VERSION}</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleIconFile</key>
@@ -53,7 +65,9 @@ cat > "$CONTENTS/Info.plist" << 'PLIST'
 </plist>
 PLIST
 
-echo "App bundle created at: $APP_BUNDLE"
 echo ""
-echo "To run:  open $APP_BUNDLE"
-echo "To install: cp -r $APP_BUNDLE /Applications/"
+echo "✅ JadwalSolat v${VERSION} (build ${BUILD_NUMBER})"
+echo "   App bundle: $APP_BUNDLE"
+echo ""
+echo "   To run:     open $APP_BUNDLE"
+echo "   To install: cp -r $APP_BUNDLE /Applications/"
