@@ -1,9 +1,10 @@
 import AppKit
 import SwiftUI
 import Combine
+import UserNotifications
 
 @MainActor
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     var statusItem: NSStatusItem!
     var popover: NSPopover!
     var timer: Timer?
@@ -77,6 +78,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         // Request notification permission
+        UNUserNotificationCenter.current().delegate = self
         NotificationService.shared.requestPermission()
     }
 
@@ -188,5 +190,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             updatePopoverContent()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         }
+    }
+    
+    // MARK: - UNUserNotificationCenterDelegate
+    
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        // Show notification even if app is frontmost
+        completionHandler([.banner, .sound])
     }
 }
