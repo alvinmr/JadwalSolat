@@ -59,6 +59,13 @@ cat > "$CONTENTS/Info.plist" << PLIST
     <true/>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Jadwal Solat membutuhkan lokasi untuk menghitung waktu solat yang akurat di daerah Anda.</string>
+    <key>NSLocationUsageDescription</key>
+    <string>Jadwal Solat membutuhkan lokasi untuk menyesuaikan jadwal Ibadah.</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
 </dict>

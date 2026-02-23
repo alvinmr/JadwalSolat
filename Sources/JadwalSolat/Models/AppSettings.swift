@@ -10,31 +10,14 @@ enum CalculationMethod: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var subuhAngle: Double {
+    // AlAdhan API method IDs
+    var apiMethodId: Int {
         switch self {
-        case .kemenagRI: return 20.0
-        case .mwl: return 18.0
-        case .isna: return 15.0
-        case .ummAlQura: return 18.5
-        case .egyptian: return 19.5
-        }
-    }
-
-    var isyaAngle: Double? {
-        switch self {
-        case .kemenagRI: return 18.0
-        case .mwl: return 17.0
-        case .isna: return 15.0
-        case .ummAlQura: return nil // 90 min after Maghrib
-        case .egyptian: return 17.5
-        }
-    }
-
-    /// For Umm Al-Qura: Isya = Maghrib + 90 minutes
-    var isyaMinutesAfterMaghrib: Double? {
-        switch self {
-        case .ummAlQura: return 90.0
-        default: return nil
+        case .kemenagRI: return 20   // Ministry of Religious Affairs, Indonesia
+        case .mwl: return 3          // Muslim World League
+        case .isna: return 2         // Islamic Society of North America (ISNA)
+        case .ummAlQura: return 4    // Umm Al-Qura University, Makkah
+        case .egyptian: return 5     // Egyptian General Authority of Survey
         }
     }
 }
@@ -62,10 +45,7 @@ class AppSettings: ObservableObject {
     @Published var locationMode: LocationMode {
         didSet { save() }
     }
-    @Published var manualLatitude: Double {
-        didSet { save() }
-    }
-    @Published var manualLongitude: Double {
+    @Published var manualCity: String {
         didSet { save() }
     }
     @Published var menuBarFormat: MenuBarFormat {
@@ -85,8 +65,7 @@ class AppSettings: ObservableObject {
         let defaults = UserDefaults.standard
         self.calculationMethod = CalculationMethod(rawValue: defaults.string(forKey: "calculationMethod") ?? "") ?? .kemenagRI
         self.locationMode = LocationMode(rawValue: defaults.string(forKey: "locationMode") ?? "") ?? .automatic
-        self.manualLatitude = defaults.object(forKey: "manualLatitude") as? Double ?? -8.65
-        self.manualLongitude = defaults.object(forKey: "manualLongitude") as? Double ?? 115.22
+        self.manualCity = defaults.string(forKey: "manualCity") ?? "Jakarta, Indonesia"
         self.menuBarFormat = MenuBarFormat(rawValue: defaults.string(forKey: "menuBarFormat") ?? "") ?? .full
         self.hijriyahOffset = defaults.integer(forKey: "hijriyahOffset")
         self.launchAtLogin = defaults.bool(forKey: "launchAtLogin")
@@ -96,8 +75,7 @@ class AppSettings: ObservableObject {
         let defaults = UserDefaults.standard
         defaults.set(calculationMethod.rawValue, forKey: "calculationMethod")
         defaults.set(locationMode.rawValue, forKey: "locationMode")
-        defaults.set(manualLatitude, forKey: "manualLatitude")
-        defaults.set(manualLongitude, forKey: "manualLongitude")
+        defaults.set(manualCity, forKey: "manualCity")
         defaults.set(menuBarFormat.rawValue, forKey: "menuBarFormat")
         defaults.set(hijriyahOffset, forKey: "hijriyahOffset")
         defaults.set(launchAtLogin, forKey: "launchAtLogin")

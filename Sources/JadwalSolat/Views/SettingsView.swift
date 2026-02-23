@@ -74,8 +74,12 @@ struct SettingsView: View {
 
                             if settings.locationMode == .manual {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    coordField(label: "Latitude", value: $settings.manualLatitude)
-                                    coordField(label: "Longitude", value: $settings.manualLongitude)
+                                    Text("Nama Kota / Daerah")
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                    TextField("Contoh: Jakarta, Indonesia", text: $settings.manualCity)
+                                        .textFieldStyle(.roundedBorder)
+                                        .font(.system(size: 13))
                                 }
                                 .padding(.leading, 22)
                                 .padding(.top, 4)
@@ -146,32 +150,14 @@ struct SettingsView: View {
         }
     }
 
-    private func coordField(label: String, value: Binding<Double>) -> some View {
-        HStack {
-            Text(label)
-                .font(.system(size: 12))
-                .foregroundColor(.secondary)
-                .frame(width: 65, alignment: .leading)
-            TextField("", value: value, format: .number.precision(.fractionLength(4)))
-                .textFieldStyle(.plain)
-                .font(.system(size: 12, design: .monospaced))
-                .foregroundColor(.primary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.primary.opacity(0.08))
-                )
-        }
-    }
-
     private var methodDescription: String {
         let m = settings.calculationMethod
-        if let isya = m.isyaAngle {
-            return "Subuh: \(String(format: "%.1f", m.subuhAngle))°  •  Isya: \(String(format: "%.1f", isya))°"
-        } else if let min = m.isyaMinutesAfterMaghrib {
-            return "Subuh: \(String(format: "%.1f", m.subuhAngle))°  •  Isya: \(Int(min)) menit setelah Maghrib"
+        switch m {
+        case .kemenagRI: return "Sesuai standar Kementerian Agama Republik Indonesia"
+        case .mwl: return "Muslim World League (Liga Muslim Dunia)"
+        case .isna: return "Islamic Society of North America (ISNA)"
+        case .ummAlQura: return "Umm Al-Qura University, Makkah"
+        case .egyptian: return "Egyptian General Authority of Survey"
         }
-        return ""
     }
 }

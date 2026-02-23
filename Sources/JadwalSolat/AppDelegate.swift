@@ -3,20 +3,36 @@ import SwiftUI
 import Combine
 import UserNotifications
 
+func diskLog(_ msg: String) {
+    let url = URL(fileURLWithPath: "/tmp/jadwal_solat.log")
+    let txt = "[\(Date())] \(msg)\n"
+    if let handle = try? FileHandle(forWritingTo: url) {
+        handle.seekToEndOfFile()
+        if let data = txt.data(using: .utf8) {
+            handle.write(data)
+        }
+        try? handle.close()
+    } else {
+        try? txt.write(to: url, atomically: true, encoding: .utf8)
+    }
+}
+
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     var statusItem: NSStatusItem!
     var popover: NSPopover!
     var timer: Timer?
     var locationService = LocationService()
-    var calculator: PrayerCalculator?
+    var apiService: PrayerAPIService?
     var todayPrayers: [PrayerTime] = []
     var tomorrowPrayers: [PrayerTime] = []
     var lastCalculationDate = Date()
+    var currentFetchTask: Task<Void, Never>?
     var cancellables = Set<AnyCancellable>()
     let settings = AppSettings.shared
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        diskLog("applicationDidFinishLaunching STARTED")
         // Hide dock icon
         NSApp.setActivationPolicy(.accessory)
 
@@ -30,6 +46,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
         // Listen for location updates (only used in automatic mode)
         locationService.$latitude.combineLatest(locationService.$longitude)
+            .dropFirst()
             .sink { [weak self] _, _ in
                 self?.rebuildCalculator()
             }
@@ -37,25 +54,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
         // Listen for settings changes
         settings.$calculationMethod
+            .dropFirst()
             .sink { [weak self] _ in self?.rebuildCalculator() }
             .store(in: &cancellables)
         settings.$locationMode
+            .dropFirst()
             .sink { [weak self] _ in self?.rebuildCalculator() }
             .store(in: &cancellables)
-        settings.$manualLatitude
-            .sink { [weak self] _ in self?.rebuildCalculator() }
-            .store(in: &cancellables)
-        settings.$manualLongitude
+        settings.$manualCity
+            .dropFirst()
             .sink { [weak self] _ in self?.rebuildCalculator() }
             .store(in: &cancellables)
         settings.$menuBarFormat
+            .dropFirst()
             .sink { [weak self] _ in self?.updateMenuBarTitle() }
             .store(in: &cancellables)
 
         // Request location
         locationService.requestLocation()
 
-        // Initial calculation
+        // Force initial calculation
         rebuildCalculator()
 
         // Setup click handler
@@ -70,7 +88,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             Task { @MainActor in
                 let now = Date()
                 if !Calendar.current.isDate(strongSelf.lastCalculationDate, inSameDayAs: now) {
-                    strongSelf.refreshPrayerTimes()
+                    await strongSelf.refreshPrayerTimes()
                 } else {
                     strongSelf.updateMenuBarTitle()
                 }
@@ -83,45 +101,67 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     }
 
     func rebuildCalculator() {
-        let lat: Double
-        let lon: Double
-        let tz: Double
+        let addressStr: String
 
         if settings.locationMode == .manual {
-            lat = settings.manualLatitude
-            lon = settings.manualLongitude
-            // Estimate timezone from longitude for manual mode
-            tz = round(lon / 15.0)
+            addressStr = settings.manualCity
         } else {
-            lat = locationService.latitude
-            lon = locationService.longitude
-            tz = locationService.timezone
+            addressStr = locationService.cityName.isEmpty ? "Jakarta" : locationService.cityName
         }
 
-        calculator = PrayerCalculator(
-            latitude: lat,
-            longitude: lon,
-            timezone: tz,
+        apiService = PrayerAPIService(
+            address: addressStr,
             method: settings.calculationMethod
         )
-        refreshPrayerTimes()
+        
+        currentFetchTask?.cancel()
+        currentFetchTask = Task {
+            try? await Task.sleep(nanoseconds: 300_000_000) // 300ms debounce
+            guard !Task.isCancelled else { return }
+            await refreshPrayerTimes()
+        }
     }
 
-    func refreshPrayerTimes() {
-        guard let calculator = calculator else { return }
+
+    func refreshPrayerTimes() async {
+        guard let apiService = apiService else { 
+            print("apiService is nil")
+            return 
+        }
         let now = Date()
         self.lastCalculationDate = now
         
-        todayPrayers = calculator.calculate(for: now)
-        if let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now) {
-            tomorrowPrayers = calculator.calculate(for: tomorrow)
-        } else {
-            tomorrowPrayers = []
-        }
+        diskLog("refreshPrayerTimes executing. Address: \(apiService.address) Method: \(apiService.method.apiMethodId)")
         
-        NotificationService.shared.scheduleNotifications(for: todayPrayers)
-        updateMenuBarTitle()
-        updatePopoverContent()
+        do {
+            diskLog("Fetching today's schedule...")
+            let fetchedToday = try await apiService.fetch(for: now)
+            diskLog("Fetched today! Count: \(fetchedToday.count)")
+            
+            var fetchedTomorrow: [PrayerTime] = []
+            if let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now) {
+                diskLog("Fetching tomorrow's schedule...")
+                fetchedTomorrow = try await apiService.fetch(for: tomorrow)
+                diskLog("Fetched tomorrow! Count: \(fetchedTomorrow.count)")
+            }
+            
+            self.todayPrayers = fetchedToday
+            self.tomorrowPrayers = fetchedTomorrow
+            
+            NotificationService.shared.scheduleNotifications(for: todayPrayers)
+            
+            await MainActor.run {
+                updateMenuBarTitle()
+                updatePopoverContent()
+            }
+        } catch {
+            diskLog("Failed to fetch API: \(error.localizedDescription) - \(error)")
+            // On failure, we retain the existing schedules (if any) and update the UI.
+            await MainActor.run {
+                updateMenuBarTitle()
+                updatePopoverContent()
+            }
+        }
     }
 
     func updateMenuBarTitle() {
@@ -165,7 +205,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
     func updatePopoverContent() {
         let cityName = settings.locationMode == .manual
-            ? "Manual (\(String(format: "%.2f", settings.manualLatitude)), \(String(format: "%.2f", settings.manualLongitude)))"
+            ? "Manual (\(settings.manualCity))"
             : locationService.cityName
 
         let view = ContentView(
