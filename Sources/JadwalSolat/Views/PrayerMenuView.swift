@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PrayerMenuView: View {
     let prayers: [PrayerTime]
+    let tomorrowPrayers: [PrayerTime]
     let cityName: String
     @ObservedObject var notificationPreferences: NotificationPreferences
     @ObservedObject var settings: AppSettings
@@ -201,8 +202,12 @@ struct PrayerMenuView: View {
     }
 
     private var countdownTarget: (label: String, prayer: PrayerTime)? {
-        guard let next = PrayerTime.nextPrayer(from: prayers, after: now) else { return nil }
-        return ("Menuju \(next.name.displayName)", next)
+        if let next = PrayerTime.nextPrayer(from: prayers, after: now) {
+            return ("Menuju \(next.name.displayName)", next)
+        } else if let nextTomorrow = tomorrowPrayers.first {
+            return ("Menuju \(nextTomorrow.name.displayName)", nextTomorrow)
+        }
+        return nil
     }
 
     private func countdownText(to prayer: PrayerTime) -> String {
@@ -217,10 +222,19 @@ struct PrayerMenuView: View {
     }
 
     private var progress: Double {
-        guard let current = PrayerTime.currentPrayer(from: prayers, at: now),
-              let next = PrayerTime.nextPrayer(from: prayers, after: now) else { return 0 }
-        let total = next.time.timeIntervalSince(current.time)
-        let elapsed = now.timeIntervalSince(current.time)
+        let current = PrayerTime.currentPrayer(from: prayers, at: now)
+        let next: PrayerTime?
+        
+        if let n = PrayerTime.nextPrayer(from: prayers, after: now) {
+            next = n
+        } else {
+            next = tomorrowPrayers.first
+        }
+        
+        guard let currentPrayer = current, let nextPrayer = next else { return 0 }
+        
+        let total = nextPrayer.time.timeIntervalSince(currentPrayer.time)
+        let elapsed = now.timeIntervalSince(currentPrayer.time)
         guard total > 0 else { return 0 }
         return min(max(elapsed / total, 0), 1)
     }

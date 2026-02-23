@@ -10,6 +10,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var locationService = LocationService()
     var calculator: PrayerCalculator?
     var todayPrayers: [PrayerTime] = []
+    var tomorrowPrayers: [PrayerTime] = []
+    var lastCalculationDate = Date()
     var cancellables = Set<AnyCancellable>()
     let settings = AppSettings.shared
 
@@ -65,7 +67,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         timer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
             guard let strongSelf = self else { return }
             Task { @MainActor in
-                strongSelf.updateMenuBarTitle()
+                let now = Date()
+                if !Calendar.current.isDate(strongSelf.lastCalculationDate, inSameDayAs: now) {
+                    strongSelf.refreshPrayerTimes()
+                } else {
+                    strongSelf.updateMenuBarTitle()
+                }
             }
         }
 
@@ -100,7 +107,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func refreshPrayerTimes() {
         guard let calculator = calculator else { return }
-        todayPrayers = calculator.calculate(for: Date())
+        let now = Date()
+        self.lastCalculationDate = now
+        
+        todayPrayers = calculator.calculate(for: now)
+        if let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now) {
+            tomorrowPrayers = calculator.calculate(for: tomorrow)
+        } else {
+            tomorrowPrayers = []
+        }
+        
         NotificationService.shared.scheduleNotifications(for: todayPrayers)
         updateMenuBarTitle()
         updatePopoverContent()
@@ -119,10 +135,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        guard let next = PrayerTime.nextPrayer(from: todayPrayers, after: now) else {
+        let next: PrayerTime
+        if let n = PrayerTime.nextPrayer(from: todayPrayers, after: now) {
+            next = n
+        } else if let nextTomorrow = tomorrowPrayers.first {
+            next = nextTomorrow
+        } else {
             statusItem.button?.title = "—"
             return
         }
+        
         let countdown = next.countdownString(from: now)
         let name = next.name.displayName
         let time = next.timeString
@@ -146,6 +168,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let view = ContentView(
             prayers: todayPrayers,
+            tomorrowPrayers: tomorrowPrayers,
             cityName: cityName,
             onQuit: { NSApp.terminate(nil) },
             notificationPreferences: NotificationPreferences.shared,

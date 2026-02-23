@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     let prayers: [PrayerTime]
+    let tomorrowPrayers: [PrayerTime]
     let cityName: String
     let onQuit: () -> Void
     @ObservedObject var notificationPreferences: NotificationPreferences
@@ -22,6 +23,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 0) {
                 PrayerMenuView(
                     prayers: prayers,
+                    tomorrowPrayers: tomorrowPrayers,
                     cityName: cityName,
                     notificationPreferences: notificationPreferences,
                     settings: settings
