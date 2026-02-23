@@ -44,16 +44,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: 'Jadwal Solat ${{ steps.version.outputs.tag }}'
-          body: |
-            ## Jadwal Solat ${{ steps.version.outputs.tag }}
-
-            ### Installation
-            1. Download `JadwalSolat-${{ steps.version.outputs.tag }}.zip`
-            2. Unzip and drag `JadwalSolat.app` to your **Applications** folder
-            3. Open the app — it will appear in your menu bar ☪️
-
-            ### Requirements
-            - macOS 13.0 (Ventura) or later
           files: |
             .build/release/JadwalSolat-${{ steps.version.outputs.tag }}.zip
           generate_release_notes: true
