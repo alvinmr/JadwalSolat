@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:JadwalSolat}",
+            "name": "Debug JadwalSolat",
+            "target": "JadwalSolat",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug JadwalSolat"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:JadwalSolat}",
+            "name": "Release JadwalSolat",
+            "target": "JadwalSolat",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release JadwalSolat"
+        }
+    ]
+}

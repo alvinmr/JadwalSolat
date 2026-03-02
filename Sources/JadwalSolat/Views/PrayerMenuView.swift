@@ -169,6 +169,7 @@ struct PrayerMenuView: View {
                     // Bell toggle button
                     Button(action: {
                         notificationPreferences.toggle(prayer.name)
+                        NotificationService.shared.reschedule()
                     }) {
                         Image(systemName: notificationPreferences.isEnabled(prayer.name)
                               ? "bell.fill" : "bell.slash")

@@ -148,7 +148,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             self.todayPrayers = fetchedToday
             self.tomorrowPrayers = fetchedTomorrow
             
-            NotificationService.shared.scheduleNotifications(for: todayPrayers)
+            // Schedule notifications for both today and tomorrow so there is always something pending
+            NotificationService.shared.scheduleNotifications(for: todayPrayers + tomorrowPrayers)
             
             await MainActor.run {
                 updateMenuBarTitle()
