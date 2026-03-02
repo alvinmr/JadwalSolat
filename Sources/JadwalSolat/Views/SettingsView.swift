@@ -4,6 +4,7 @@ struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     let onBack: () -> Void
 
+    @State private var testNotificationSent = false
     private let accentColor = Color(red: 16/255, green: 130/255, blue: 85/255)
 
     var body: some View {
@@ -120,6 +121,33 @@ struct SettingsView: View {
                         }
                         .toggleStyle(.checkbox)
                         .tint(accentColor)
+                    }
+
+                    // MARK: - Notification Test
+                    settingsSection("NOTIFIKASI") {
+                        Button(action: {
+                            testNotificationSent = true
+                            NotificationService.shared.sendTestNotification()
+                            // Reset feedback after 4 seconds
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                                testNotificationSent = false
+                            }
+                        }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: testNotificationSent ? "checkmark.circle.fill" : "bell.badge")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(testNotificationSent ? .green : accentColor)
+                                Text(testNotificationSent ? "Terkirim! Cek notifikasi..." : "Uji Notifikasi")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(testNotificationSent ? .green : .primary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .animation(.easeInOut, value: testNotificationSent)
+
+                        Text("Kirim notifikasi percobaan dalam 3 detik untuk memastikan sistem berfungsi.")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
                     }
                 }
                 .padding(.horizontal, 16)

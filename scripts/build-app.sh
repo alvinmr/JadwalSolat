@@ -73,6 +73,10 @@ cat > "$CONTENTS/Info.plist" << PLIST
 PLIST
 
 echo ""
+echo "Signing app bundle (ad-hoc)..."
+codesign --force --deep --sign - "$APP_BUNDLE"
+
+echo ""
 echo "✅ JadwalSolat v${VERSION} (build ${BUILD_NUMBER})"
 echo "   App bundle: $APP_BUNDLE"
 echo ""

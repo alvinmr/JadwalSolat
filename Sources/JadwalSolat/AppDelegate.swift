@@ -70,6 +70,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             .sink { [weak self] _ in self?.updateMenuBarTitle() }
             .store(in: &cancellables)
 
+        // Request notification permission FIRST (before any scheduling happens)
+        UNUserNotificationCenter.current().delegate = self
+        NotificationService.shared.requestPermission()
+
         // Request location
         locationService.requestLocation()
 
@@ -94,10 +98,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
                 }
             }
         }
-
-        // Request notification permission
-        UNUserNotificationCenter.current().delegate = self
-        NotificationService.shared.requestPermission()
     }
 
     func rebuildCalculator() {
